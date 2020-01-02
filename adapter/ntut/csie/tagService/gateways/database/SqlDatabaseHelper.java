@@ -58,6 +58,7 @@ public class SqlDatabaseHelper {
 		Statement statement = null;
 		String sql = "Create Table If Not Exists " + TagTable.tableName + " ("
 				+ TagTable.tagId + " Varchar(50) Not Null, "
+				+ TagTable.orderId + " Integer Not Null, "
 				+ TagTable.name + " Varchar(256) Not Null, "
 				+ TagTable.productId + " Varchar(50), "
 				+ "Primary Key (" + TagTable.tagId + ") "
