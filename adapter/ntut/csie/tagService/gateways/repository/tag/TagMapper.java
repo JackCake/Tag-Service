@@ -12,7 +12,7 @@ public class TagMapper {
 		return tag;
 	}
 	
-	public TagData transformToBacklogItemImportanceData(Tag tag) {
+	public TagData transformToTagData(Tag tag) {
 		TagData data = new TagData();
 		data.setTagId(tag.getTagId());
 		data.setOrderId(tag.getOrderId());

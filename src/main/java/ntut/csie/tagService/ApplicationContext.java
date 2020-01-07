@@ -1,6 +1,14 @@
 package ntut.csie.tagService;
 
+import ntut.csie.tagService.gateways.repository.assignedTag.MySqlAssignedTagRepositoryImpl;
 import ntut.csie.tagService.gateways.repository.tag.MySqlTagRepositoryImpl;
+import ntut.csie.tagService.useCase.assignedTag.AssignedTagRepository;
+import ntut.csie.tagService.useCase.assignedTag.assign.AssignTagToBacklogItemUseCase;
+import ntut.csie.tagService.useCase.assignedTag.assign.AssignTagToBacklogItemUseCaseImpl;
+import ntut.csie.tagService.useCase.assignedTag.get.GetAssignedTagsByBacklogItemIdUseCase;
+import ntut.csie.tagService.useCase.assignedTag.get.GetAssignedTagsByBacklogItemIdUseCaseImpl;
+import ntut.csie.tagService.useCase.assignedTag.unassign.UnassignTagFromBacklogItemUseCase;
+import ntut.csie.tagService.useCase.assignedTag.unassign.UnassignTagFromBacklogItemUseCaseImpl;
 import ntut.csie.tagService.useCase.tag.TagRepository;
 import ntut.csie.tagService.useCase.tag.add.AddTagUseCase;
 import ntut.csie.tagService.useCase.tag.add.AddTagUseCaseImpl;
@@ -15,11 +23,15 @@ public class ApplicationContext {
 	private static ApplicationContext instance = null;
 	
 	private static TagRepository tagRepository = null;
+	private static AssignedTagRepository assignedTagRepository = null;
 	
 	private AddTagUseCase addTagUseCase;
 	private GetTagsByProductIdUseCase getTagsByProductIdUseCase;
 	private EditTagUseCase editTagUseCase;
 	private DeleteTagUseCase deleteTagUseCase;
+	private AssignTagToBacklogItemUseCase assignTagToBacklogItemUseCase;
+	private GetAssignedTagsByBacklogItemIdUseCase getAssignedTagsByBacklogItemIdUseCase;
+	private UnassignTagFromBacklogItemUseCase unassignTagFromBacklogItemUseCase;
 	
 	private ApplicationContext() {}
 	
@@ -35,6 +47,13 @@ public class ApplicationContext {
 			tagRepository = new MySqlTagRepositoryImpl();
 		}
 		return tagRepository;
+	}
+	
+	public AssignedTagRepository newAssignedTagRepository() {
+		if(assignedTagRepository == null) {
+			assignedTagRepository = new MySqlAssignedTagRepositoryImpl();
+		}
+		return assignedTagRepository;
 	}
 	
 	public AddTagUseCase newAddTagUseCase() {
@@ -55,5 +74,20 @@ public class ApplicationContext {
 	public DeleteTagUseCase newDeleteTagUseCase() {
 		deleteTagUseCase = new DeleteTagUseCaseImpl(newTagRepository());
 		return deleteTagUseCase;
+	}
+	
+	public AssignTagToBacklogItemUseCase newAssignTagToBacklogItemUseCase() {
+		assignTagToBacklogItemUseCase = new AssignTagToBacklogItemUseCaseImpl(newAssignedTagRepository());
+		return assignTagToBacklogItemUseCase;
+	}
+	
+	public GetAssignedTagsByBacklogItemIdUseCase newGetAssignedTagsByBacklogItemIdUseCase() {
+		getAssignedTagsByBacklogItemIdUseCase = new GetAssignedTagsByBacklogItemIdUseCaseImpl(newAssignedTagRepository());
+		return getAssignedTagsByBacklogItemIdUseCase;
+	}
+	
+	public UnassignTagFromBacklogItemUseCase newUnassignTagFromBacklogItemUseCase() {
+		unassignTagFromBacklogItemUseCase = new UnassignTagFromBacklogItemUseCaseImpl(newAssignedTagRepository());
+		return unassignTagFromBacklogItemUseCase;
 	}
 }

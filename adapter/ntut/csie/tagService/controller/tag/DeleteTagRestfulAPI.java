@@ -12,7 +12,7 @@ import ntut.csie.tagService.useCase.tag.delete.DeleteTagUseCase;
 
 @Path("/tags")
 @Singleton
-public class DeleteTagRestfulAPI implements DeleteTagOutput{
+public class DeleteTagRestfulAPI implements DeleteTagOutput {
 	private ApplicationContext applicationContext = ApplicationContext.getInstance();
 	private DeleteTagUseCase deleteTagUseCase = applicationContext.newDeleteTagUseCase();
 

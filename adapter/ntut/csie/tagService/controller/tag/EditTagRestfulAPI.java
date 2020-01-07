@@ -18,7 +18,7 @@ import ntut.csie.tagService.useCase.tag.edit.EditTagUseCase;
 
 @Path("/tags")
 @Singleton
-public class EditTagRestfulAPI implements EditTagOutput{
+public class EditTagRestfulAPI implements EditTagOutput {
 	private ApplicationContext applicationContext = ApplicationContext.getInstance();
 	private EditTagUseCase editTagUseCase = applicationContext.newEditTagUseCase();
 	

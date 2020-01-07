@@ -16,6 +16,8 @@ import ntut.csie.tagService.controller.tag.DeleteTagRestfulAPI;
 import ntut.csie.tagService.controller.tag.EditTagRestfulAPI;
 import ntut.csie.tagService.controller.tag.GetTagsByProductIdRestfulAPI;
 import ntut.csie.tagService.model.tag.Tag;
+import ntut.csie.tagService.unitTest.factory.TestFactory;
+import ntut.csie.tagService.unitTest.repository.FakeAssignedTagRepository;
 import ntut.csie.tagService.unitTest.repository.FakeTagRepository;
 import ntut.csie.tagService.useCase.DomainEventListener;
 import ntut.csie.tagService.useCase.tag.TagModel;
@@ -38,13 +40,19 @@ import ntut.csie.tagService.useCase.tag.get.GetTagsByProductIdUseCaseImpl;
 
 public class TagUseCaseTest {
 	private FakeTagRepository fakeTagRepository;
+	private FakeAssignedTagRepository fakeAssignedTagRepository;
+	
+	private TestFactory testFactory;
 	
 	private String productId;
 	
 	@Before
 	public void setUp() {
 		fakeTagRepository = new FakeTagRepository();
-		DomainEventListener.getInstance().init(fakeTagRepository);
+		fakeAssignedTagRepository = new FakeAssignedTagRepository();
+		DomainEventListener.getInstance().init(fakeTagRepository, fakeAssignedTagRepository);
+		
+		testFactory = new TestFactory(fakeTagRepository, fakeAssignedTagRepository);
 		
 		productId = "1";
 	}
@@ -144,6 +152,26 @@ public class TagUseCaseTest {
 		for(int i = 0; i < tagListAfterDeleted.size(); i++) {
 			assertEquals(i + 1, tagListAfterDeleted.get(i).getOrderId());
 		}
+	}
+	
+	@Test
+	public void Should_AssignedTagDeleted_When_DeleteTag() {
+		addNewTag("Thesis Tag");
+		
+		List<Tag> tagList = new ArrayList<>(fakeTagRepository.getTagsByProductId(productId));
+		String tagId = tagList.get(0).getTagId();
+		
+		String[] backlogItemIds = {"1", "2"};
+		int numberOfBacklogItemIds = backlogItemIds.length;
+		for(int i = 0; i < numberOfBacklogItemIds; i++) {
+			testFactory.newAssignedTag(backlogItemIds[i], tagId);
+		}
+		
+		assertEquals(2, fakeAssignedTagRepository.getAssignedTagsByTagId(tagId).size());
+		
+		deleteTag(tagId);
+		
+		assertEquals(0, fakeAssignedTagRepository.getAssignedTagsByTagId(tagId).size());
 	}
 	
 	private AddTagOutput addNewTag(String name) {

@@ -26,7 +26,7 @@ public class MySqlTagRepositoryImpl implements TagRepository {
 		PreparedStatement preparedStatement = null;
 		try {
 			sqlDatabaseHelper.transactionStart();
-			TagData data = tagMapper.transformToBacklogItemImportanceData(tag);
+			TagData data = tagMapper.transformToTagData(tag);
 			String sql = String.format("Insert Into %s Values (?, ?, ?, ?) "
 					+ "On Duplicate Key Update %s=?", 
 					TagTable.tableName, TagTable.name);

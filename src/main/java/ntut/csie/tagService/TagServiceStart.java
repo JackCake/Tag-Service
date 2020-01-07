@@ -20,6 +20,6 @@ public class TagServiceStart extends HttpServlet implements ServletContextListen
 		SqlDatabaseHelper sqlDatabaseHelper = new SqlDatabaseHelper();
 		sqlDatabaseHelper.initialize();
 		ApplicationContext context = ApplicationContext.getInstance();
-		DomainEventListener.getInstance().init(context.newTagRepository());
+		DomainEventListener.getInstance().init(context.newTagRepository(), context.newAssignedTagRepository());
 	}
 }

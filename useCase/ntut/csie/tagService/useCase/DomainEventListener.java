@@ -4,12 +4,15 @@ import ntut.csie.tagService.model.DomainEventPublisher;
 import ntut.csie.tagService.model.DomainEventSubscriber;
 import ntut.csie.tagService.model.tag.Tag;
 import ntut.csie.tagService.model.tag.TagDeleted;
+import ntut.csie.tagService.useCase.assignedTag.AssignedTag;
+import ntut.csie.tagService.useCase.assignedTag.AssignedTagRepository;
 import ntut.csie.tagService.useCase.tag.TagRepository;
 
 public class DomainEventListener {
 	private static DomainEventListener instance = null;
 	
 	private TagRepository tagRepository;
+	private AssignedTagRepository assignedTagRepository;
 	
 	private DomainEventListener() {}
 	
@@ -20,8 +23,9 @@ public class DomainEventListener {
 		return instance;
 	}
 	
-	public void init(TagRepository tagRepository) {
+	public void init(TagRepository tagRepository, AssignedTagRepository assignedTagRepository) {
 		this.tagRepository = tagRepository;
+		this.assignedTagRepository = assignedTagRepository;
 		DomainEventPublisher.getInstance().reset();
 		eventSubscribe();
 	}
@@ -39,6 +43,13 @@ public class DomainEventListener {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}					
+				}
+				for(AssignedTag assignedTag : assignedTagRepository.getAssignedTagsByTagId(domainEvent.tagId())) {
+					try {
+						assignedTagRepository.remove(assignedTag);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 

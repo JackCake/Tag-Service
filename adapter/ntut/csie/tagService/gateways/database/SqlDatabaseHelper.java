@@ -27,6 +27,7 @@ public class SqlDatabaseHelper {
 		createTagServiceDatabase();
 		ConnectionPool.getInstance().initialize(serverUrl, databaseName, account, password);
 		createTagTable();
+		createAssignedTagTable();
 	}
 	
 	public void connectToDatabase() {
@@ -62,6 +63,26 @@ public class SqlDatabaseHelper {
 				+ TagTable.name + " Varchar(256) Not Null, "
 				+ TagTable.productId + " Varchar(50), "
 				+ "Primary Key (" + TagTable.tagId + ") "
+				+ ")";
+		try {
+			statement = connection.createStatement();
+			statement.executeUpdate(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			closeStatement(statement);
+			releaseConnection();
+		}
+	}
+	
+	private void createAssignedTagTable() {
+		connectToDatabase();
+		Statement statement = null;
+		String sql = "Create Table If Not Exists " + AssignedTagTable.tableName + " ("
+				+ AssignedTagTable.assignedTagId + " Varchar(50) Not Null, "
+				+ AssignedTagTable.backlogItemId + " Varchar(50) Not Null, "
+				+ AssignedTagTable.tagId + " Varchar(50) Not Null, "
+				+ "Primary Key (" + AssignedTagTable.assignedTagId + ") "
 				+ ")";
 		try {
 			statement = connection.createStatement();
