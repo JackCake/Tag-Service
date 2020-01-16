@@ -4,6 +4,7 @@ import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -15,7 +16,7 @@ import ntut.csie.tagService.useCase.assignedTag.assign.AssignTagToBacklogItemInp
 import ntut.csie.tagService.useCase.assignedTag.assign.AssignTagToBacklogItemOutput;
 import ntut.csie.tagService.useCase.assignedTag.assign.AssignTagToBacklogItemUseCase;
 
-@Path("/assigned_tags")
+@Path("/backlog_items/{backlog_item_id}/assigned_tags")
 @Singleton
 public class AssignTagToBacklogItemRestfulAPI implements AssignTagToBacklogItemOutput {
 	private ApplicationContext applicationContext = ApplicationContext.getInstance();
@@ -27,15 +28,15 @@ public class AssignTagToBacklogItemRestfulAPI implements AssignTagToBacklogItemO
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public synchronized AssignTagToBacklogItemOutput assignTagToBacklogItem(String assignedTagInfo) {
-		String backlogItemId = "";
+	public synchronized AssignTagToBacklogItemOutput assignTagToBacklogItem(
+			@PathParam("backlog_item_id") String backlogItemId, 
+			String assignedTagInfo) {
 		String tagId = "";
 		
 		AssignTagToBacklogItemOutput output = this;
 		
 		try {
 			JSONObject assignedTagJSON = new JSONObject(assignedTagInfo);
-			backlogItemId = assignedTagJSON.getString("backlogItemId");
 			tagId = assignedTagJSON.getString("tagId");
 		} catch (JSONException e) {
 			e.printStackTrace();

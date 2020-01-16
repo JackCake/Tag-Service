@@ -27,7 +27,7 @@ public class MySqlAssignedTagRepositoryImpl implements AssignedTagRepository {
 		try {
 			sqlDatabaseHelper.transactionStart();
 			AssignedTagData data = assignedTagMapper.transformToAssignedTagData(assignedTag);
-			String sql = String.format("Insert Into %s Values (?, ?, ?) ",  
+			String sql = String.format("Insert Into %s Values (?, ?, ?)",  
 					AssignedTagTable.tableName);
 			preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
 			preparedStatement.setString(1, data.getAssignedTagId());

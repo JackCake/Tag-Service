@@ -28,14 +28,15 @@ public class MySqlTagRepositoryImpl implements TagRepository {
 			sqlDatabaseHelper.transactionStart();
 			TagData data = tagMapper.transformToTagData(tag);
 			String sql = String.format("Insert Into %s Values (?, ?, ?, ?) "
-					+ "On Duplicate Key Update %s=?", 
-					TagTable.tableName, TagTable.name);
+					+ "On Duplicate Key Update %s=?, %s=?", 
+					TagTable.tableName, TagTable.orderId, TagTable.name);
 			preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
 			preparedStatement.setString(1, data.getTagId());
 			preparedStatement.setInt(2, data.getOrderId());
 			preparedStatement.setString(3, data.getName());
 			preparedStatement.setString(4, data.getProductId());
-			preparedStatement.setString(5, data.getName());
+			preparedStatement.setInt(5, data.getOrderId());
+			preparedStatement.setString(6, data.getName());
 			preparedStatement.executeUpdate();
 			sqlDatabaseHelper.transactionEnd();
 		} catch(SQLException e) {

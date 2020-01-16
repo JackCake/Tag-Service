@@ -4,6 +4,7 @@ import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -15,7 +16,7 @@ import ntut.csie.tagService.useCase.tag.add.AddTagInput;
 import ntut.csie.tagService.useCase.tag.add.AddTagOutput;
 import ntut.csie.tagService.useCase.tag.add.AddTagUseCase;
 
-@Path("/tags")
+@Path("/products/{product_id}/tags")
 @Singleton
 public class AddTagRestfulAPI implements AddTagOutput {
 	private ApplicationContext applicationContext = ApplicationContext.getInstance();
@@ -27,16 +28,16 @@ public class AddTagRestfulAPI implements AddTagOutput {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public synchronized AddTagOutput addTag(String tagInfo) {
+	public synchronized AddTagOutput addTag(
+			@PathParam("product_id") String productId, 
+			String tagInfo) {
 		String name = "";
-		String productId = "";
 		
 		AddTagOutput output = this;
 		
 		try {
 			JSONObject tagJSON = new JSONObject(tagInfo);
 			name = tagJSON.getString("name");
-			productId = tagJSON.getString("productId");
 		} catch (JSONException e) {
 			e.printStackTrace();
 			output.setAddSuccess(false);
