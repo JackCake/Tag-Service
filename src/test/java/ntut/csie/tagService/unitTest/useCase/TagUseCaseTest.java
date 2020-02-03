@@ -64,9 +64,55 @@ public class TagUseCaseTest {
 	
 	@Test
 	public void Should_Success_When_AddTag() {
-		AddTagOutput output = addNewTag("Thesis Tag");
+		String name = "Thesis Tag";
+		
+		AddTagOutput output = addNewTag(name, productId);
+		
 		boolean isAddSuccess = output.isAddSuccess();
 		assertTrue(isAddSuccess);
+	}
+	
+	@Test
+	public void Should_ReturnErrorMessage_When_AddTagWithNullParamemters() {
+		String name = null;
+		
+		AddTagOutput output = addNewTag(name, null);
+		
+		boolean isAddSuccess = output.isAddSuccess();
+		String errorMessage = output.getErrorMessage();
+		String expectedErrorMessage = "The name of the tag should be required!\n" +
+				"The product id of the tag should be required!\n";
+		assertFalse(isAddSuccess);
+		assertEquals(expectedErrorMessage, errorMessage);
+	}
+	
+	@Test
+	public void Should_ReturnErrorMessage_When_AddTagWithEmptyParamemters() {
+		String name = "";
+		
+		AddTagOutput output = addNewTag(name, "");
+		
+		boolean isAddSuccess = output.isAddSuccess();
+		String errorMessage = output.getErrorMessage();
+		String expectedErrorMessage = "The name of the tag should be required!\n" +
+				"The product id of the tag should be required!\n";
+		assertFalse(isAddSuccess);
+		assertEquals(expectedErrorMessage, errorMessage);
+	}
+	
+	@Test
+	public void Should_ReturnErrorMessage_When_AddSameTag() {
+		String name = "Thesis Tag";
+		
+		testFactory.newTag(name, productId);
+		
+		AddTagOutput output = addNewTag(name, productId);
+		
+		boolean isAddSuccess = output.isAddSuccess();
+		String errorMessage = output.getErrorMessage();
+		String expectedErrorMessage = "There is the same name of the tag!";
+		assertFalse(isAddSuccess);
+		assertEquals(expectedErrorMessage, errorMessage);
 	}
 	
 	@Test
@@ -76,21 +122,25 @@ public class TagUseCaseTest {
 		int numberOfTags = names.length;
 		
 		for(int i = 0; i < numberOfTags; i++) {
-			addNewTag(names[i]);
+			testFactory.newTag(names[i], productId);
 		}
 		
-		GetTagsByProductIdOutput output = getTagsByProductId();
+		GetTagsByProductIdOutput output = getTagsByProductId(productId);
 		List<TagModel> tagList = output.getTagList();
 		
+		for(int i = 0; i < numberOfTags; i++) {
+			assertEquals(i + 1, tagList.get(i).getOrderId());
+			assertEquals(names[i], tagList.get(i).getName());
+		}
 		assertEquals(numberOfTags, tagList.size());
 	}
 	
 	@Test
 	public void Should_Success_When_EditTag() {
-		addNewTag("Thesis Tag");
-		List<Tag> tagList = new ArrayList<>(fakeTagRepository.getTagsByProductId(productId));
-		String editedTagId = tagList.get(tagList.size() - 1).getTagId();
+		String name = "Thesis Tag";
 		
+		Tag editedTag = testFactory.newTag(name, productId);
+		String editedTagId = editedTag.getTagId();
 		String editedName = "Thesis";
 		
 		EditTagOutput output = editTag(editedTagId, editedName);
@@ -101,21 +151,93 @@ public class TagUseCaseTest {
 	
 	@Test
 	public void Should_ReturnErrorMessage_When_EditNotExistTag() {
+		String editedTagId = null;
 		String editedName = "Thesis";
 		
-		EditTagOutput output = editTag(null, editedName);
+		EditTagOutput output = editTag(editedTagId, editedName);
 		
 		boolean isEditSuccess = output.isEditSuccess();
+		String errorMessage = output.getErrorMessage();
 		String expectedErrorMessage = "Sorry, the tag is not exist!";
 		assertFalse(isEditSuccess);
-		assertEquals(expectedErrorMessage, output.getErrorMessage());
+		assertEquals(expectedErrorMessage, errorMessage);
+	}
+	
+	@Test
+	public void Should_ReturnErrorMessage_When_EditTagWithNullName() {
+		String name = "Thesis";
+		
+		Tag editedTag = testFactory.newTag(name, productId);
+		String editedTagId = editedTag.getTagId();
+		String editedName = null;
+		
+		EditTagOutput output = editTag(editedTagId, editedName);
+		
+		boolean isEditSuccess = output.isEditSuccess();
+		String errorMessage = output.getErrorMessage();
+		String expectedErrorMessage = "The name of the tag should be required!\n";
+		assertFalse(isEditSuccess);
+		assertEquals(expectedErrorMessage, errorMessage);
+	}
+	
+	@Test
+	public void Should_ReturnErrorMessage_When_EditTagWithEmptyName() {
+		String name = "Thesis";
+		
+		Tag editedTag = testFactory.newTag(name, productId);
+		String editedTagId = editedTag.getTagId();
+		String editedName = "";
+		
+		EditTagOutput output = editTag(editedTagId, editedName);
+		
+		boolean isEditSuccess = output.isEditSuccess();
+		String errorMessage = output.getErrorMessage();
+		String expectedErrorMessage = "The name of the tag should be required!\n";
+		assertFalse(isEditSuccess);
+		assertEquals(expectedErrorMessage, errorMessage);
+	}
+	
+	@Test
+	public void Should_Success_When_EditTagWithNothing() {
+		String name = "Thesis Tag";
+		
+		Tag editedTag = testFactory.newTag(name, productId);
+		String editedTagId = editedTag.getTagId();
+		
+		EditTagOutput output = editTag(editedTagId, name);
+		
+		boolean isEditSuccess = output.isEditSuccess();
+		assertTrue(isEditSuccess);
+	}
+	
+	@Test
+	public void Should_ReturnErrorMessage_When_EditSameTag() {
+		String[] names = {"Bug", "The suggest of the teacher"};
+		int numberOfNames = names.length;
+		
+		List<Tag> tagList = new ArrayList<>();
+		for(int i = 0; i < numberOfNames; i++) {
+			Tag tag = testFactory.newTag(names[i], productId);
+			tagList.add(tag);
+		}
+		
+		String editedTagId = tagList.get(1).getTagId();
+		EditTagOutput output = editTag(editedTagId, names[0]);
+		
+		boolean isEditSuccess = output.isEditSuccess();
+		String errorMessage = output.getErrorMessage();
+		String expectedErrorMessage = "There is the same name of the tag!";
+		assertFalse(isEditSuccess);
+		assertEquals(expectedErrorMessage, errorMessage);
 	}
 	
 	@Test
 	public void Should_Success_When_DeleteTag() {
-		addNewTag("Thesis Tag");
-		List<Tag> tagList = new ArrayList<>(fakeTagRepository.getTagsByProductId(productId));
-		String deletedTagId = tagList.get(tagList.size() - 1).getTagId();
+		String name = "Thesis Tag";
+		
+		Tag deletedTag = testFactory.newTag(name, productId);
+		
+		String deletedTagId = deletedTag.getTagId();
 		
 		DeleteTagOutput output = deleteTag(deletedTagId);
 		
@@ -125,12 +247,15 @@ public class TagUseCaseTest {
 	
 	@Test
 	public void Should_ReturnErrorMessage_When_DeleteNotExistTag() {
-		DeleteTagOutput output = deleteTag(null);
+		String deletedTagId = null;
+		
+		DeleteTagOutput output = deleteTag(deletedTagId);
 		
 		boolean isDeleteSuccess = output.isDeleteSuccess();
+		String errorMessage = output.getErrorMessage();
 		String expectedDeleteMessage = "Sorry, the tag is not exist!";
 		assertFalse(isDeleteSuccess);
-		assertEquals(expectedDeleteMessage, output.getErrorMessage());
+		assertEquals(expectedDeleteMessage, errorMessage);
 	}
 	
 	@Test
@@ -138,15 +263,16 @@ public class TagUseCaseTest {
 		String[] names = {"Bug", "The suggest of the teacher", "Thesis Tag"};
 		int numberOfNames = names.length;
 		
+		List<Tag> tagList = new ArrayList<>();
 		for(int i = 0; i < numberOfNames; i++) {
-			addNewTag(names[i]);
+			Tag tag = testFactory.newTag(names[i], productId);
+			tagList.add(tag);
 		}
 		
-		List<Tag> tagList = new ArrayList<>(fakeTagRepository.getTagsByProductId(productId));
-		String deletedTagId = tagList.get(0).getTagId();
+		String deletedTagId = tagList.get(1).getTagId();
 		deleteTag(deletedTagId);
 		
-		GetTagsByProductIdOutput output = getTagsByProductId();
+		GetTagsByProductIdOutput output = getTagsByProductId(productId);
 		List<TagModel> tagListAfterDeleted = output.getTagList();
 		
 		for(int i = 0; i < tagListAfterDeleted.size(); i++) {
@@ -156,10 +282,9 @@ public class TagUseCaseTest {
 	
 	@Test
 	public void Should_AssignedTagDeleted_When_DeleteTag() {
-		addNewTag("Thesis Tag");
-		
-		List<Tag> tagList = new ArrayList<>(fakeTagRepository.getTagsByProductId(productId));
-		String tagId = tagList.get(0).getTagId();
+		String name = "Thesis Tag";
+		Tag tag = testFactory.newTag(name, productId);
+		String tagId = tag.getTagId();
 		
 		String[] backlogItemIds = {"1", "2"};
 		int numberOfBacklogItemIds = backlogItemIds.length;
@@ -174,7 +299,7 @@ public class TagUseCaseTest {
 		assertEquals(0, fakeAssignedTagRepository.getAssignedTagsByTagId(tagId).size());
 	}
 	
-	private AddTagOutput addNewTag(String name) {
+	private AddTagOutput addNewTag(String name, String productId) {
 		AddTagUseCase addTagUseCase = new AddTagUseCaseImpl(fakeTagRepository);
 		AddTagInput input = (AddTagInput) addTagUseCase;
 		input.setName(name);
@@ -184,7 +309,7 @@ public class TagUseCaseTest {
 		return output;
 	}
 	
-	private GetTagsByProductIdOutput getTagsByProductId() {
+	private GetTagsByProductIdOutput getTagsByProductId(String productId) {
 		GetTagsByProductIdUseCase getTagsByProductIdUseCase = new GetTagsByProductIdUseCaseImpl(fakeTagRepository);
 		GetTagsByProductIdInput input = (GetTagsByProductIdInput) getTagsByProductIdUseCase;
 		input.setProductId(productId);

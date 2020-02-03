@@ -1,5 +1,8 @@
 package ntut.csie.tagService.useCase.tag.add;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ntut.csie.tagService.model.tag.Tag;
 import ntut.csie.tagService.model.tag.TagBuilder;
 import ntut.csie.tagService.useCase.tag.TagRepository;
@@ -16,12 +19,21 @@ public class AddTagUseCaseImpl implements AddTagUseCase, AddTagInput {
 	
 	@Override
 	public void execute(AddTagInput input, AddTagOutput output) {
+		String name = input.getName();
 		String productId = input.getProductId();
+		List<Tag> tagList = new ArrayList<>(tagRepository.getTagsByProductId(productId));
+		for(Tag tag : tagList) {
+			if(tag.getName().equals(name)) {
+				output.setAddSuccess(false);
+				output.setErrorMessage("There is the same name of the tag!");
+				return;
+			}
+		}
 		int orderId = tagRepository.getTagsByProductId(productId).size() + 1;
 		try {
 			Tag tag = TagBuilder.newInstance()
 					.orderId(orderId)
-					.name(input.getName())
+					.name(name)
 					.productId(productId)
 					.build();
 			tagRepository.save(tag);

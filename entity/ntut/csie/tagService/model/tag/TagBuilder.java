@@ -28,9 +28,17 @@ public class TagBuilder {
 	}
 	
 	public Tag build() throws Exception {
-		if(name == null) {
-			throw new Exception("The name of the tag should not be null.");
+		String exceptionMessage = "";
+		if(name == null || name.isEmpty()) {
+			exceptionMessage += "The name of the tag should be required!\n";
 		}
+		if(productId == null || productId.isEmpty()) {
+			exceptionMessage += "The product id of the tag should be required!\n";
+		}
+		if(!exceptionMessage.isEmpty()) {
+			throw new Exception(exceptionMessage);
+		}
+		
 		tagId = UUID.randomUUID().toString();
 		Tag tag = new Tag(tagId, name, productId);
 		tag.setOrderId(orderId);

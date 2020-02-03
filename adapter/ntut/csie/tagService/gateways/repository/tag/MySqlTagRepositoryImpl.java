@@ -42,7 +42,7 @@ public class MySqlTagRepositoryImpl implements TagRepository {
 		} catch(SQLException e) {
 			sqlDatabaseHelper.transactionError();
 			e.printStackTrace();
-			throw new Exception("Sorry, there is the problem when save the tag. Please try again!");
+			throw new Exception("Sorry, there is the database problem when save the tag. Please contact to the system administrator!");
 		} finally {
 			sqlDatabaseHelper.closePreparedStatement(preparedStatement);
 			sqlDatabaseHelper.releaseConnection();
@@ -55,17 +55,18 @@ public class MySqlTagRepositoryImpl implements TagRepository {
 		PreparedStatement preparedStatement = null;
 		try {
 			sqlDatabaseHelper.transactionStart();
-			String sql = String.format("Delete From %s Where %s = '%s'",
+			TagData data = tagMapper.transformToTagData(tag);
+			String sql = String.format("Delete From %s Where %s = ?",
 					TagTable.tableName,
-					TagTable.tagId,
-					tag.getTagId());
+					TagTable.tagId);
 			preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
+			preparedStatement.setString(1, data.getTagId());
 			preparedStatement.executeUpdate();
 			sqlDatabaseHelper.transactionEnd();
 		}  catch(SQLException e) {
 			sqlDatabaseHelper.transactionError();
 			e.printStackTrace();
-			throw new Exception("Sorry, there is the problem when remove the tag. Please try again!");
+			throw new Exception("Sorry, there is the database problem when remove the tag. Please contact to the system administrator!");
 		} finally {
 			sqlDatabaseHelper.closePreparedStatement(preparedStatement);
 			sqlDatabaseHelper.releaseConnection();
@@ -75,14 +76,16 @@ public class MySqlTagRepositoryImpl implements TagRepository {
 	@Override
 	public synchronized Tag getTagById(String tagId) {
 		sqlDatabaseHelper.connectToDatabase();
+		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 		Tag tag = null;
 		try {
-			String query = String.format("Select * From %s Where %s = '%s'",
+			String sql = String.format("Select * From %s Where %s = ?",
 					TagTable.tableName,
-					TagTable.tagId,
-					tagId);
-			resultSet = sqlDatabaseHelper.getResultSet(query);
+					TagTable.tagId);
+			preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
+			preparedStatement.setString(1, tagId);
+			resultSet = preparedStatement.executeQuery();
 			if (resultSet.first()) {
 				int orderId = resultSet.getInt(TagTable.orderId);
 				String name = resultSet.getString(TagTable.name);
@@ -100,6 +103,7 @@ public class MySqlTagRepositoryImpl implements TagRepository {
 			e.printStackTrace();
 		} finally {
 			sqlDatabaseHelper.closeResultSet(resultSet);
+			sqlDatabaseHelper.closePreparedStatement(preparedStatement);
 			sqlDatabaseHelper.releaseConnection();
 		}
 		return tag;
@@ -108,15 +112,17 @@ public class MySqlTagRepositoryImpl implements TagRepository {
 	@Override
 	public synchronized Collection<Tag> getTagsByProductId(String productId){
 		sqlDatabaseHelper.connectToDatabase();
+		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 		Collection<Tag> tags = new ArrayList<>();
 		try {
-			String query = String.format("Select * From %s Where %s = '%s' Order By %s",
+			String sql = String.format("Select * From %s Where %s = ? Order By %s",
 					TagTable.tableName, 
 					TagTable.productId, 
-					productId, 
 					TagTable.orderId);
-			resultSet = sqlDatabaseHelper.getResultSet(query);
+			preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
+			preparedStatement.setString(1, productId);
+			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
 				String tagId = resultSet.getString(TagTable.tagId);
 				int orderId = resultSet.getInt(TagTable.orderId);
@@ -135,6 +141,7 @@ public class MySqlTagRepositoryImpl implements TagRepository {
 			e.printStackTrace();
 		} finally {
 			sqlDatabaseHelper.closeResultSet(resultSet);
+			sqlDatabaseHelper.closePreparedStatement(preparedStatement);
 			sqlDatabaseHelper.releaseConnection();
 		}
 		return tags;

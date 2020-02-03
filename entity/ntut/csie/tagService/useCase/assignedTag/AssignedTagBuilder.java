@@ -22,6 +22,14 @@ public class AssignedTagBuilder {
 	}
 	
 	public AssignedTag build() throws Exception {
+		String exceptionMessage = "";
+		if(backlogItemId == null || backlogItemId.isEmpty()) {
+			exceptionMessage += "The backlog item id of the assigned tag should be required!\n";
+		}
+		if(!exceptionMessage.isEmpty()) {
+			throw new Exception(exceptionMessage);
+		}
+		
 		assignedTagId = UUID.randomUUID().toString();
 		AssignedTag assignedTag = new AssignedTag(assignedTagId, backlogItemId, tagId);
 		return assignedTag;

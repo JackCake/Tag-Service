@@ -41,7 +41,7 @@ public class AddTagRestfulAPI implements AddTagOutput {
 		} catch (JSONException e) {
 			e.printStackTrace();
 			output.setAddSuccess(false);
-			output.setErrorMessage("Sorry, please try again!");
+			output.setErrorMessage("Sorry, there is the service problem when add the tag. Please contact to the system administrator!");
 			return output;
 		}
 		

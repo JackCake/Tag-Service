@@ -1,9 +1,9 @@
 package ntut.csie.tagService.unitTest.useCase;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
@@ -17,6 +17,7 @@ import ntut.csie.tagService.model.tag.Tag;
 import ntut.csie.tagService.unitTest.factory.TestFactory;
 import ntut.csie.tagService.unitTest.repository.FakeAssignedTagRepository;
 import ntut.csie.tagService.unitTest.repository.FakeTagRepository;
+import ntut.csie.tagService.useCase.assignedTag.AssignedTag;
 import ntut.csie.tagService.useCase.assignedTag.AssignedTagModel;
 import ntut.csie.tagService.useCase.assignedTag.assign.AssignTagToBacklogItemInput;
 import ntut.csie.tagService.useCase.assignedTag.assign.AssignTagToBacklogItemOutput;
@@ -40,6 +41,7 @@ public class AssignedTagUseCaseTest {
 	private Tag tag;
 	private String backlogItemId;
 	private String productId;
+	private String tagId;
 	
 	@Before
 	public void setUp() {
@@ -52,6 +54,7 @@ public class AssignedTagUseCaseTest {
 		productId = "2";
 		String name = "Thesis Tag";
 		tag = testFactory.newTag(name, productId);
+		tagId = tag.getTagId();
 	}
 	
 	@After
@@ -62,31 +65,71 @@ public class AssignedTagUseCaseTest {
 	
 	@Test
 	public void Should_Success_When_AssignTagToBacklogItem() {
-		AssignTagToBacklogItemOutput output = assignTagToBacklogItem(backlogItemId, tag.getTagId());
+		AssignTagToBacklogItemOutput output = assignTagToBacklogItem(backlogItemId, tagId);
 		
 		boolean isAssignSuccess = output.isAssignSuccess();
 		assertTrue(isAssignSuccess);
 	}
 	
 	@Test
-	public void Should_ReturnAssignedTagList_When_GetAssignedTagsByBacklogItemId() {
+	public void Should_ReturnErrorMessage_When_AssignNotExistTagToBacklogItem() {
+		AssignTagToBacklogItemOutput output = assignTagToBacklogItem(backlogItemId, null);
+		
+		boolean isAssignSuccess = output.isAssignSuccess();
+		String errorMessage = output.getErrorMessage();
+		String expectedErrorMessage = "Sorry, the tag is not exist!";
+		assertFalse(isAssignSuccess);
+		assertEquals(expectedErrorMessage, errorMessage);
+	}
+	
+	
+	@Test
+	public void Should_ReturnErrorMessage_When_AssignTagToBacklogItemWithNullBacklogItemId() {
+		AssignTagToBacklogItemOutput output = assignTagToBacklogItem(null, tagId);
+		
+		boolean isAssignSuccess = output.isAssignSuccess();
+		String errorMessage = output.getErrorMessage();
+		String expectedErrorMessage = "The backlog item id of the assigned tag should be required!\n";
+		assertFalse(isAssignSuccess);
+		assertEquals(expectedErrorMessage, errorMessage);
+	}
+	
+	@Test
+	public void Should_ReturnErrorMessage_When_AssignTagToBacklogItemWithEmptyBacklogItemId() {
+		AssignTagToBacklogItemOutput output = assignTagToBacklogItem("", tagId);
+		
+		boolean isAssignSuccess = output.isAssignSuccess();
+		String errorMessage = output.getErrorMessage();
+		String expectedErrorMessage = "The backlog item id of the assigned tag should be required!\n";
+		assertFalse(isAssignSuccess);
+		assertEquals(expectedErrorMessage, errorMessage);
+	}
+	
+	@Test
+	public void Should_ReturnAssignedTagList_When_GetAssignedTagsOfBacklogItem() {
 		Tag otherTag = testFactory.newTag("Other", productId);
-		String[] tagIds = {tag.getTagId(), otherTag.getTagId()};
+		String[] tagIds = {tagId, otherTag.getTagId()};
 		
-		int numberOfCommittedBacklogItems = tagIds.length;
+		int numberOfAssignedTags = tagIds.length;
 		
-		for(int i = 0; i < numberOfCommittedBacklogItems; i++) {
+		for(int i = 0; i < numberOfAssignedTags; i++) {
 			assignTagToBacklogItem(backlogItemId, tagIds[i]);
 		}
 		
-		assertEquals(numberOfCommittedBacklogItems, getAssignedTagsByBacklogItemId(backlogItemId).size());
+		GetAssignedTagsByBacklogItemIdOutput output = getAssignedTagsByBacklogItemId(backlogItemId);
+		List<AssignedTagModel> assignedTagList = output.getAssignedTagList();
+		
+		for(int i = 0; i < numberOfAssignedTags; i++) {
+			assertEquals(backlogItemId, assignedTagList.get(i).getBacklogItemId());
+			assertEquals(tagIds[i], assignedTagList.get(i).getTagId());
+		}
+		assertEquals(numberOfAssignedTags, assignedTagList.size());
 	}
 	
 	@Test
 	public void Should_Success_When_UnassignTagFromBacklogItem() {
-		assignTagToBacklogItem(backlogItemId, tag.getTagId());
-		List<AssignedTagModel> assignedTagList = new ArrayList<>(getAssignedTagsByBacklogItemId(backlogItemId));
-		String assignedTagId = assignedTagList.get(assignedTagList.size() - 1).getAssignedTagId();
+		AssignedTag assignedTag = testFactory.newAssignedTag(backlogItemId, tagId);
+		String assignedTagId = assignedTag.getAssignedTagId();
 		
 		UnassignTagFromBacklogItemOutput output = unassignTagFromBacklogItem(assignedTagId);
 		
@@ -94,8 +137,20 @@ public class AssignedTagUseCaseTest {
 		assertTrue(isUnassignSuccess);
 	}
 	
+	@Test
+	public void Should_ReturnErrorMessage_When_UnassignNotExistAssignedTag() {
+		String assignedTagId = null;
+		UnassignTagFromBacklogItemOutput output = unassignTagFromBacklogItem(assignedTagId);
+		
+		boolean isUnassignSuccess = output.isUnassignSuccess();
+		String errorMessage = output.getErrorMessage();
+		String expectedErrorMessage = "Sorry, the assigned tag is not exist!";
+		assertFalse(isUnassignSuccess);
+		assertEquals(expectedErrorMessage, errorMessage);
+	}
+	
 	private AssignTagToBacklogItemOutput assignTagToBacklogItem(String backlogItemId, String tagId) {
-		AssignTagToBacklogItemUseCase assignTagToBacklogItemUseCase = new AssignTagToBacklogItemUseCaseImpl(fakeAssignedTagRepository);
+		AssignTagToBacklogItemUseCase assignTagToBacklogItemUseCase = new AssignTagToBacklogItemUseCaseImpl(fakeTagRepository, fakeAssignedTagRepository);
 		AssignTagToBacklogItemInput input = (AssignTagToBacklogItemInput) assignTagToBacklogItemUseCase;
 		input.setBacklogItemId(backlogItemId);
 		input.setTagId(tagId);
@@ -104,13 +159,13 @@ public class AssignedTagUseCaseTest {
 		return output;
 	}
 	
-	private List<AssignedTagModel> getAssignedTagsByBacklogItemId(String backlogItemId) {
+	private GetAssignedTagsByBacklogItemIdOutput getAssignedTagsByBacklogItemId(String backlogItemId) {
 		GetAssignedTagsByBacklogItemIdUseCase getAssignedTagsByBacklogItemIdUseCase = new GetAssignedTagsByBacklogItemIdUseCaseImpl(fakeAssignedTagRepository);
 		GetAssignedTagsByBacklogItemIdInput input = (GetAssignedTagsByBacklogItemIdInput) getAssignedTagsByBacklogItemIdUseCase;
 		input.setBacklogItemId(backlogItemId);
 		GetAssignedTagsByBacklogItemIdOutput output = new GetAssignedTagsByBacklogItemIdRestfulAPI();
 		getAssignedTagsByBacklogItemIdUseCase.execute(input, output);
-		return output.getAssignedTagList();
+		return output;
 	}
 	
 	private UnassignTagFromBacklogItemOutput unassignTagFromBacklogItem(String assignedTagId) {

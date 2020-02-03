@@ -77,7 +77,7 @@ public class ApplicationContext {
 	}
 	
 	public AssignTagToBacklogItemUseCase newAssignTagToBacklogItemUseCase() {
-		assignTagToBacklogItemUseCase = new AssignTagToBacklogItemUseCaseImpl(newAssignedTagRepository());
+		assignTagToBacklogItemUseCase = new AssignTagToBacklogItemUseCaseImpl(newTagRepository(), newAssignedTagRepository());
 		return assignTagToBacklogItemUseCase;
 	}
 	

@@ -38,7 +38,7 @@ public class MySqlAssignedTagRepositoryImpl implements AssignedTagRepository {
 		} catch(SQLException e) {
 			sqlDatabaseHelper.transactionError();
 			e.printStackTrace();
-			throw new Exception("Sorry, there is the problem when save the assigned tag. Please try again!");
+			throw new Exception("Sorry, there is the database problem when save the assigned tag. Please contact to the system administrator!");
 		} finally {
 			sqlDatabaseHelper.closePreparedStatement(preparedStatement);
 			sqlDatabaseHelper.releaseConnection();
@@ -51,17 +51,19 @@ public class MySqlAssignedTagRepositoryImpl implements AssignedTagRepository {
 		PreparedStatement preparedStatement = null;
 		try {
 			sqlDatabaseHelper.transactionStart();
-			String sql = String.format("Delete From %s Where %s = '%s'",
+			AssignedTagData data = assignedTagMapper.transformToAssignedTagData(assignedTag);
+			String sql = String.format("Delete From %s Where %s = ?",
 					AssignedTagTable.tableName,
 					AssignedTagTable.assignedTagId,
 					assignedTag.getAssignedTagId());
 			preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
+			preparedStatement.setString(1, data.getAssignedTagId());
 			preparedStatement.executeUpdate();
 			sqlDatabaseHelper.transactionEnd();
 		}  catch(SQLException e) {
 			sqlDatabaseHelper.transactionError();
 			e.printStackTrace();
-			throw new Exception("Sorry, there is the problem when remove the assigned tag. Please try again!");
+			throw new Exception("Sorry, there is the database problem when remove the assigned tag. Please contact to the system administrator!");
 		} finally {
 			sqlDatabaseHelper.closePreparedStatement(preparedStatement);
 			sqlDatabaseHelper.releaseConnection();
@@ -71,14 +73,16 @@ public class MySqlAssignedTagRepositoryImpl implements AssignedTagRepository {
 	@Override
 	public synchronized AssignedTag getAssignedTagById(String assignedTagId) {
 		sqlDatabaseHelper.connectToDatabase();
+		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 		AssignedTag assignedTag = null;
 		try {
-			String query = String.format("Select * From %s Where %s = '%s'",
+			String sql = String.format("Select * From %s Where %s = ?",
 					AssignedTagTable.tableName,
-					AssignedTagTable.assignedTagId,
-					assignedTagId);
-			resultSet = sqlDatabaseHelper.getResultSet(query);
+					AssignedTagTable.assignedTagId);
+			preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
+			preparedStatement.setString(1, assignedTagId);
+			resultSet = preparedStatement.executeQuery();
 			if (resultSet.first()) {
 				String backlogItemId = resultSet.getString(AssignedTagTable.backlogItemId);
 				String tagId = resultSet.getString(AssignedTagTable.tagId);
@@ -94,6 +98,7 @@ public class MySqlAssignedTagRepositoryImpl implements AssignedTagRepository {
 			e.printStackTrace();
 		} finally {
 			sqlDatabaseHelper.closeResultSet(resultSet);
+			sqlDatabaseHelper.closePreparedStatement(preparedStatement);
 			sqlDatabaseHelper.releaseConnection();
 		}
 		return assignedTag;
@@ -102,14 +107,16 @@ public class MySqlAssignedTagRepositoryImpl implements AssignedTagRepository {
 	@Override
 	public synchronized Collection<AssignedTag> getAssignedTagsByBacklogItemId(String backlogItemId) {
 		sqlDatabaseHelper.connectToDatabase();
+		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 		Collection<AssignedTag> assignedTags = new ArrayList<>();
 		try {
-			String query = String.format("Select * From %s Where %s = '%s'",
+			String sql = String.format("Select * From %s Where %s = ?",
 					AssignedTagTable.tableName, 
-					AssignedTagTable.backlogItemId, 
-					backlogItemId);
-			resultSet = sqlDatabaseHelper.getResultSet(query);
+					AssignedTagTable.backlogItemId);
+			preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
+			preparedStatement.setString(1, backlogItemId);
+			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
 				String assignedTagId = resultSet.getString(AssignedTagTable.assignedTagId);
 				String tagId = resultSet.getString(AssignedTagTable.tagId);
@@ -126,6 +133,7 @@ public class MySqlAssignedTagRepositoryImpl implements AssignedTagRepository {
 			e.printStackTrace();
 		} finally {
 			sqlDatabaseHelper.closeResultSet(resultSet);
+			sqlDatabaseHelper.closePreparedStatement(preparedStatement);
 			sqlDatabaseHelper.releaseConnection();
 		}
 		return assignedTags;
@@ -134,14 +142,16 @@ public class MySqlAssignedTagRepositoryImpl implements AssignedTagRepository {
 	@Override
 	public synchronized Collection<AssignedTag> getAssignedTagsByTagId(String tagId){
 		sqlDatabaseHelper.connectToDatabase();
+		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 		Collection<AssignedTag> assignedTags = new ArrayList<>();
 		try {
-			String query = String.format("Select * From %s Where %s = '%s'",
+			String sql = String.format("Select * From %s Where %s = ?",
 					AssignedTagTable.tableName, 
-					AssignedTagTable.tagId, 
-					tagId);
-			resultSet = sqlDatabaseHelper.getResultSet(query);
+					AssignedTagTable.tagId);
+			preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
+			preparedStatement.setString(1, tagId);
+			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
 				String assignedTagId = resultSet.getString(AssignedTagTable.assignedTagId);
 				String backlogItemId = resultSet.getString(AssignedTagTable.backlogItemId);
@@ -158,6 +168,7 @@ public class MySqlAssignedTagRepositoryImpl implements AssignedTagRepository {
 			e.printStackTrace();
 		} finally {
 			sqlDatabaseHelper.closeResultSet(resultSet);
+			sqlDatabaseHelper.closePreparedStatement(preparedStatement);
 			sqlDatabaseHelper.releaseConnection();
 		}
 		return assignedTags;

@@ -60,7 +60,7 @@ public class SqlDatabaseHelper {
 		String sql = "Create Table If Not Exists " + TagTable.tableName + " ("
 				+ TagTable.tagId + " Varchar(50) Not Null, "
 				+ TagTable.orderId + " Integer Not Null, "
-				+ TagTable.name + " Varchar(256) Not Null, "
+				+ TagTable.name + " Varchar(50) Not Null, "
 				+ TagTable.productId + " Varchar(50), "
 				+ "Primary Key (" + TagTable.tagId + ") "
 				+ ")";
@@ -121,12 +121,6 @@ public class SqlDatabaseHelper {
 	public PreparedStatement getPreparedStatement(String sql) throws SQLException {
 		PreparedStatement preparedStatement = connection.prepareStatement(sql);
 		return preparedStatement;
-	}
-	
-	public ResultSet getResultSet(String query) throws SQLException {
-		Statement statement = connection.createStatement();
-		ResultSet resultSet = statement.executeQuery(query);
-		return resultSet;
 	}
 	
 	public void closeStatement(Statement statement) {

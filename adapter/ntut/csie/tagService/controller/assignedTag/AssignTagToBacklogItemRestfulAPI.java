@@ -41,7 +41,7 @@ public class AssignTagToBacklogItemRestfulAPI implements AssignTagToBacklogItemO
 		} catch (JSONException e) {
 			e.printStackTrace();
 			output.setAssignSuccess(false);
-			output.setErrorMessage("Sorry, please try again!");
+			output.setErrorMessage("Sorry, there is the service problem when assign the tag to the backlog item. Please contact to the system administrator!");
 			return output;
 		}
 		
